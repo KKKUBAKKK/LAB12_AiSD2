@@ -48,43 +48,36 @@ namespace ASD
         /// </summary>
         public double[] PointDepths(Point[] points)
         {
-            List<(int s, int e, double l)> waterLevels = new List<(int s, int e, double l)> ();
-            int s = 0;
-            int m = 0;
-            int e = 0;
-            for (int i = 1; i < points.Length; i++)
+            List<(Point s, Point e, double l)> levels = new List<(Point s, Point e, double l)>();
+            double[] depths = new double[points.Length];
+
+            Point s = points[0], m = points[0], e = points[0];
+            bool inside = false;
+            for (int i = 0; i < points.Length; i++)
             {
-                if (s >= m)
+                if (points[i].y >= s.y && !inside)
                 {
-                    if (points[i].y >= points[s].y)
-                        s = i;
-                    else
-                        m = i;
+                    s = points[i];
+                    m = s;
+                    e = s;
                 }
-                else if (m > e)
+                else if (points[i].y <= m.y)
                 {
-                    if (points[i].y <= points[m].y)
-                        m = i;
-                    else
-                        e = i;
+                    m = points[i];
+                    e = points[i];
+                    inside = true;
                 }
-                else
+                else if (points[i].y >= e.y)
                 {
-                    if (points[e].y < points[i].y)
-                        e = i;
-                    else
+                    if (points[i].y >= s.y)
                     {
-                        waterLevels.Add((s, e, Math.Min(points[s].y, points[e].y)));
-                        s = i;
-                        m = i;
-                        e = i;
+                        e = points[i];
+                        e = getPointAtY(m, points[i], Math.Min(s.y, e.y));
+                        levels
                     }
                 }
+                
             }
-            
-            (int s, int e, double l)
-            
-            return null;
         }
         
         /// <summary>

@@ -15,3 +15,4 @@
 /Users/jakubkindracki/RiderProjects/LAB12_AiSD2/LAB12_AiSD2/obj/Debug/net8.0/LAB12_AiSD2.pdb
 /Users/jakubkindracki/RiderProjects/LAB12_AiSD2/LAB12_AiSD2/obj/Debug/net8.0/LAB12_AiSD2.genruntimeconfig.cache
 /Users/jakubkindracki/RiderProjects/LAB12_AiSD2/LAB12_AiSD2/obj/Debug/net8.0/ref/LAB12_AiSD2.dll
+/Users/jakubkindracki/RiderProjects/LAB12_AiSD2/LAB12_AiSD2/obj/Debug/net8.0/LAB12_AiSD2.sourcelink.json
