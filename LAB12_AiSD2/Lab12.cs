@@ -48,36 +48,88 @@ namespace ASD
         /// </summary>
         public double[] PointDepths(Point[] points)
         {
-            List<(Point s, Point e, double l)> levels = new List<(Point s, Point e, double l)>();
-            double[] depths = new double[points.Length];
+            Double[] depths = new double[points.Length];
+            Point start, end;
+            int s = 0, m, e;
 
-            Point s = points[0], m = points[0], e = points[0];
-            bool inside = false;
-            for (int i = 0; i < points.Length; i++)
+            for (int j = 0; j < points.Length; j++)
             {
-                if (points[i].y >= s.y && !inside)
+                (start, s, m) = FindStart(points, s);
+                if (m + 1 >= points.Length)
+                    break;
+
+                (end, e) = FindEnd(points, m, start);
+                if (e == m)
                 {
-                    s = points[i];
-                    m = s;
-                    e = s;
-                }
-                else if (points[i].y <= m.y)
-                {
-                    m = points[i];
-                    e = points[i];
-                    inside = true;
-                }
-                else if (points[i].y >= e.y)
-                {
-                    if (points[i].y >= s.y)
-                    {
-                        e = points[i];
-                        e = getPointAtY(m, points[i], Math.Min(s.y, e.y));
-                        levels
-                    }
+                    s = m;
+                    continue;
                 }
                 
+                double l = Math.Min(start.y, end.y);
+
+                for (int i = s + 1; i < e; i++)
+                {
+                    depths[i] = l - points[i].y;
+                }
+
+                s = e;
             }
+
+            return depths;
+        }
+
+        public (Point e, int eInd) FindEnd(Point[] points, int m, Point s) // pamietaj o sprawdzeniu m przed wywolaniem
+        {
+            Point e = points[m + 1];
+            int ind = m + 1;
+            
+            if (e.y > s.y)
+                return (e, ind);
+            
+            for (int i = m + 2; i < points.Length; i++)
+            {
+                if (points[i].x < e.x)
+                    break;
+                
+                if (points[i].y > s.y)
+                {
+                    e = points[i];
+                    return (e, i);
+                }
+                else if (points[i].y > e.y)
+                {
+                    e = points[i];
+                    ind = i;
+                }
+            }
+
+            if (e.y > points[m].y)
+                return (e, ind);
+
+            e = new Point(Int32.MinValue, Int32.MinValue);
+            return (e, m);
+        }
+
+        public (Point p, int s, int m) FindStart(Point[] points, int s)
+        {
+            Point res = points[s];
+            int ind = s;
+            int m = s + 1;
+            for (int i = s + 1; i < points.Length; i++)
+            {
+                if (res.y <= points[i].y)
+                {
+                    ind = i;
+                    res = points[i];
+                }
+                else if (points[i].x > res.x)
+                {
+                    m = i;
+                    break;
+                }
+            }
+
+            return (res, ind, m);
         }
         
         /// <summary>
