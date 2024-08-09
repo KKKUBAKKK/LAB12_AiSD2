@@ -48,88 +48,74 @@ namespace ASD
         /// </summary>
         public double[] PointDepths(Point[] points)
         {
-            Double[] depths = new double[points.Length];
-            Point start, end;
-            int s = 0, m, e;
-
-            for (int j = 0; j < points.Length; j++)
-            {
-                (start, s, m) = FindStart(points, s);
-                if (m + 1 >= points.Length)
-                    break;
-
-                (end, e) = FindEnd(points, m, start);
-                if (e == m)
-                {
-                    s = m;
-                    continue;
-                }
-                
-                double l = Math.Min(start.y, end.y);
-
-                for (int i = s + 1; i < e; i++)
-                {
-                    depths[i] = l - points[i].y;
-                }
-
-                s = e;
-            }
-
-            return depths;
+            return B(points);
         }
 
-        public (Point e, int eInd) FindEnd(Point[] points, int m, Point s) // pamietaj o sprawdzeniu m przed wywolaniem
+        public (int s, int e)[] Split(Point[] points)
         {
-            Point e = points[m + 1];
-            int ind = m + 1;
-            
-            if (e.y > s.y)
-                return (e, ind);
-            
-            for (int i = m + 2; i < points.Length; i++)
+            List<(int s, int e)> lakes = new List<(int s, int e)>();
+            (int s, int e) lake = (0, 0);
+            for (int i = 1; i < points.Length; i++)
             {
-                if (points[i].x < e.x)
-                    break;
-                
-                if (points[i].y > s.y)
+                if (points[i].x < points[i - 1].x)
                 {
-                    e = points[i];
-                    return (e, i);
+                    lakes.Add(lake);
+                    lake.s = i;
+                    lake.e = i;
                 }
-                else if (points[i].y > e.y)
+                else
                 {
-                    e = points[i];
-                    ind = i;
+                    lake.e++;
                 }
             }
+            lakes.Add(lake);
 
-            if (e.y > points[m].y)
-                return (e, ind);
-
-            e = new Point(Int32.MinValue, Int32.MinValue);
-            return (e, m);
+            return lakes.ToArray();
         }
 
-        public (Point p, int s, int m) FindStart(Point[] points, int s)
+        public double[] B(Point[] points)
         {
-            Point res = points[s];
-            int ind = s;
-            int m = s + 1;
-            for (int i = s + 1; i < points.Length; i++)
+            var lakes = Split(points);
+            var res = new List<double>();
+            for (int i = 0; i < lakes.Length; i++)
             {
-                if (res.y <= points[i].y)
-                {
-                    ind = i;
-                    res = points[i];
-                }
-                else if (points[i].x > res.x)
-                {
-                    m = i;
-                    break;
-                }
+                if (lakes[i].e - lakes[i].s >= 2)
+                    res.AddRange(A(points, lakes[i].s, lakes[i].e));
+                else
+                    res.AddRange(new double[lakes[i].e - lakes[i].s + 1]);
             }
 
-            return (res, ind, m);
+            return res.ToArray();
+        }
+
+        public List<double> A(Point[] points, int s, int e)
+        {
+            double[] heights = new double[e - s + 1];
+
+            heights[0] = points[s].y;
+            for (int i = 1; i < heights.Length; i++)
+            {
+                heights[i] = Math.Max(heights[i - 1], points[s + i].y);
+            }
+
+            heights[heights.Length - 1] = points[e].y;
+            for (int i = heights.Length - 2; i >= 0; i--)
+            {
+                heights[i] = Math.Min(heights[i], Math.Max(heights[i + 1], points[s + i].y));
+            }
+
+            for (int i = 0; i < heights.Length - 1; i++)
+            {
+                if (points[i + s].y >= heights[i])
+                    heights[i] = 0;
+                else
+                {
+                    heights[i] -= points[i + s].y;
+                }
+            }
+            heights[heights.Length - 1] = 0;
+
+            return new List<double>(heights);
         }
         
         /// <summary>
@@ -139,7 +125,43 @@ namespace ASD
         /// </summary>
         public double WaterVolume(Point[] points)
         {
-            return -1;
+            double volume = 0;
+            var heights = B(points);
+            for (int i = 0; i < heights.Length - 1; i++)
+            {
+                if (heights[i] == 0 && heights[i + 1] == 0)
+                    continue;
+
+                var pts = GetPoints(points[i], points[i + 1], heights[i], heights[i + 1]);
+                volume += CalculateVolume(pts.left, pts.right, pts.height);
+            }
+
+            return volume;
+        }
+
+        public (Point left, Point right, double height) GetPoints(Point l, Point r, double hl, double hr)
+        {
+            if (l.y > r.y + hr)
+            {
+                var nl = getPointAtY(l, r, r.y + hr);
+                return (nl, r, 0);
+            }
+            
+            if (r.y > l.y + hl)
+            {
+                var nr = getPointAtY(l, r, l.y + hl);
+                return (l, nr, 0);
+            }
+            
+            return (l, r, Math.Min(hl, hr));
+        }
+
+        public double CalculateVolume(Point left, Point right, double height)
+        {
+            var dx = right.x - left.x;
+            var dy = Math.Abs(right.y - left.y);
+            
+            return dx * dy / 2 + height * dx;
         }
     }
 

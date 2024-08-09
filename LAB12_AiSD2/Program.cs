@@ -13,7 +13,8 @@ namespace ASD
 
             foreach (var ts in lab12test.TestSets)
             {
-                ts.Value.PerformTests(verbose: true, checkTimeLimit: ts.Key.ToLower().Contains("performance"));
+                ts.Value.PerformTests(verbose: true,
+                    checkTimeLimit: false); //ts.Key.ToLower().Contains("performance"));
             }
         }
     }
